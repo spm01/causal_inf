@@ -1,0 +1,236 @@
+---
+title: "The Effect of Education across Political Boundaries"
+output: pdf_document
+date: "2023-11-08"
+---
+##### Author: Sean Milligan
+### Hong Kong and China: An Overview
+
+### Governance Styles and Products of Circumstance
+Natural experiments are usually a rare occurence in the world, especially at the scale of millions of people. However, China and Hong Kong provide a unique case-study on markets and governing styles, due to the particular circumstances of a market economy located directly adjacent to a communist regime. This provides an excellent opportunity to explore the reasons behind the differences in their respective economies, and what lessons might be drawn from doing so. 
+
+Throughout the 20th century, China was focused on industrializing and moving away from prior agrarian organization. Conversely, Hong Kong was largely developed by virtue of being a Crown colony for nearly 150 years. This provided a stark advantage through access to previously established British markets, all without needing to overhaul previously established economic systems. 
+
+However, starting in 1960, the GDP per capita of both regions was comparable, falling within a few thousand dollars of one another. By the end of the century, the differences were stark, with Hong Kong's GDP per capita towering above China's. 
+
+According to economist George Psacharopoulos's work, education provides one of the largest returns on investment for a country's GDP growth, largely centralized in primary and secondary education. For developing countries, the effect is even greater. Given the industrialization that occurred in China throughout the 20th century, education provides a key lens to evaluate both Hong Kong and Chinese economies over time.
+
+Thus, this blog post investigates whether or not education spending had any significant contribution to GDP growth per capita throughout the second half of the 20th century.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+```{r, echo = FALSE}
+#loading packages
+library(pacman)
+p_load(tidyverse, ggplot2, data.table, stringr, lubridate, fixest, here, magrittr, lmtest, dplyr, stargazer, knitr, tinytex, pander)
+
+```
+
+```{r, echo = FALSE}
+#unloading data
+TW_data = read.csv("TAIWANGDPCAPITA.csv")
+CH_data = read.csv("CHINAGDPCAPITA.csv")
+HK_data = read.csv("HKGDPCAPITA.csv")
+HKEDU_data = read.csv("HKEDU.csv")
+CHEDU_data = read.csv("CHNEDU.csv")
+
+#changing variable info
+CH_data = rename(CH_data, CH_GDPCAPITA = RGDPC2CNA625NUPN)
+HK_data = rename(HK_data, HK_GDPCAPITA = RGDPCHHKA625NUPN)
+
+#removing unneeded variables from dataset
+HKEDU_data = subset(HKEDU_data, select = -X)
+CHEDU_data = subset(CHEDU_data, select = -X)
+
+#easier to merge/work within datasets
+colnames(HKEDU_data) = toupper(colnames(HKEDU_data))
+colnames(CHEDU_data) = toupper(colnames(CHEDU_data))
+
+#merging datasets by GDP / capita
+total_data = left_join(CH_data, TW_data, by = "DATE")
+total_data_HK = left_join(HK_data, total_data, by = "DATE")
+
+#setting date format
+HKEDU_data$DATE = ymd(HKEDU_data$DATE)
+CHEDU_data$DATE = ymd(CHEDU_data$DATE)
+total_data_HK$DATE = ymd(total_data_HK$DATE)
+
+#renaming variables
+EDU_total1 = merge(HKEDU_data, CHEDU_data, by = "DATE")
+colnames(EDU_total1) = c("DATE", "HK_EDU_SPEND", "HK_ANNUAL_CHANGE", "CH_EDU_SPEND", "CH_ANNUAL_CHANGE")
+
+#merging datasets
+EDU_total2 = merge(EDU_total1, total_data_HK, by = "DATE", all = TRUE)
+```
+<br>
+
+## Observations
+
+### Hong Kong
+
+We begin by directly regressing the log of Hong Kong education spending on log Hong Kong GDP per capita to determine if there is any preexisting relationship. We find the results to be largely statistically significant. For every unit increase in 1% increase in education spending, we can anticipate GDP per capita to also increase by 1.852%.
+
+```{r}
+#use log calcuations for GDP and education rather than plain values 
+#pool and account for China by adding China factor to final "combined regression"
+#run same regression with BOTH china and HK data on top of each other for this data
+#pivot long data frame
+#year fixed effects
+#ln(GDP) ~ ln(EDUC) + CHINA | Date
+#Country = as_factor(Country)
+#ln(GDP) ~ ln(EDUC) + i(Country, ref = “China”) | Date
+#robust SE vcov = "hc1"
+
+#begin modeling HK education spending on GDP / capita
+#first regression
+HKregr1 = feols(
+  data = EDU_total2,
+  fml = log(HK_GDPCAPITA) ~ log(HK_EDU_SPEND),
+  vcov = "hc1",
+  na_action = "exclude"
+)
+
+#summary of results
+etable(HKregr1)
+
+#modeling with lagged variables
+EDU_total2 %<>%
+mutate(
+    HKspending_lag = lag(HK_EDU_SPEND),
+    HKcapita_lag = lag(HK_GDPCAPITA),
+  )
+
+#dynamic model
+HKregr2 = feols(
+  data = EDU_total2,
+  fml = log(HK_GDPCAPITA) ~ log(HK_EDU_SPEND) + log(HKspending_lag) + log(HKcapita_lag),
+  vcov = "hc1",
+  na_action = "exclude"
+)
+
+#summary results
+etable(HKregr2)
+
+#graphing the results
+ggplot(data = EDU_total2, aes(x=log(HK_EDU_SPEND), y=log(HK_GDPCAPITA))) +
+  geom_point() +
+  geom_smooth(method = lm, se = TRUE)
+
+```
+<br>
+
+Secondary analysis creates a dynamic model which includes lagged variables to account and control for prior increases in GDP per capita and spending on education. The lagged variables capture a greater effect on GDP per capita than non-lagged variables. This is most likely due to prior education spending having a delayed impact on GDP per capita, and prior GDP per capita influencing current values. However, our second regression model fails to find statistically significant outputs given the inclusion of lagged variables. 
+
+<br>
+
+### China
+
+Our analysis of the Chinese economy repeats our initial regression: education spending on GDP per capita. We find that Chinese spending on education has a much lower effect, with GDP per capita increasing by only 0.5% for every 1% increase in education spending. However, this value is statistically insignficant.
+```{r}
+#begin modeling CH education on GDP / capita
+#first regression
+CHregr1 = feols(
+  data = EDU_total2,
+  fml = log(CH_GDPCAPITA) ~ log(CH_EDU_SPEND),
+  vcov = "hc1",
+  na_action = "exclude"
+)
+#summary results
+etable(CHregr1)
+
+#modeling with lagged variables
+EDU_total2 %<>%
+mutate(
+    CHspending_lag = lag(CH_EDU_SPEND),
+    CHcapita_lag = lag(CH_GDPCAPITA)
+  )
+
+#dynamic model
+CHregr2 = feols(
+  data = EDU_total2,
+  fml =log(CH_GDPCAPITA) ~ log(CH_EDU_SPEND) + log(CHspending_lag) + log(CHcapita_lag),
+  vcov = "hc1"
+)
+
+#summary results
+etable(CHregr2)
+
+#graphing the results
+ggplot(data = EDU_total2, aes(x=log(CH_EDU_SPEND), y=log(CH_GDPCAPITA))) +
+  geom_point() +
+  geom_smooth(method = lm, se = TRUE)
+
+```
+
+<br>
+
+Similarly, our second analysis creates a dynamic model that includes lagged variables for both GDP per capita and education spending. We find that the current education spending and lagged GDP per capita variables to be statistically significant. 
+
+Again, the lagged GDP per capita variable can likely be explained by prior GDP per capita values influencing current observations. However, there may be some indication of a slightly negative relationship between education spending and GDP per capita, at least in the Chinese education system. 
+
+```{r}
+#subsetting data to long format
+data_cleaned = EDU_total2 %>%
+  select(DATE, HK_EDU_SPEND, HK_GDPCAPITA, CH_EDU_SPEND, CH_GDPCAPITA)
+
+data_longer = pivot_longer(data = data_cleaned, 
+             cols = -DATE, 
+             names_to = c(".value", "country"), 
+             names_pattern = "(.*)_(.*)")
+
+data_longer$country = as_factor(data_longer$country)
+#final combined regression of 2 variables
+```
+# Conclusion and Suggestions
+
+Despite the differences in GDP per capita continuing to increase over time, our analysis fails to find that education solely contributed to the widening gap of Hong Kong and China.
+
+Given the complex nature of GDP per capita statistics, other confounding variables are likely affecting our values for education spending and GDP per capita observations.
+
+Additionally, the Chinese population in 1960 was 500 million people, while Hong Kong was 2 million. This is certain to have a pronounced effect on GDP per capita given the larger denominator for the per capita comparison.
+
+Furthermore, some yearly data points in education spending and GDP per capita were unreported by both China and Hong Kong, thus making it difficult to draw any definitive conclusions on how education spending might impact GDP per capita. This shrinks the total number of observations down significantly, which decreases the statistical significance of any regression outputs.
+
+<br>
+```{r}
+ggplot(data = EDU_total2, aes(x = DATE)) +
+  geom_point(aes(y = HK_GDPCAPITA, color = "Hong Kong"), size = 3) +
+  geom_point(aes(y = CH_GDPCAPITA, color = "China"), size = 3) +
+  geom_smooth(aes(y = HK_GDPCAPITA), method = "lm", se = FALSE, color = "blue") +
+  geom_smooth(aes(y = CH_GDPCAPITA), method = "lm", se = FALSE, color = "red") +
+  labs(title = "GDP Per Capita Over Time",
+       x = "Year",
+       y = "GDP per Capita",
+       color = "Country") +
+  theme_classic() +
+  theme(plot.title = element_text(size = 20)) +
+  scale_color_manual(values = c("China" = "red", "Hong Kong" = "blue"))
+
+```
+
+Finally, further research could be done through a difference in differences analysis, inclusion of export data and trading partners, or additional lagged variables in dynamic modeling.
+
+Specifically the inclusion of additional variables would be useful in reducing omitted variables bias when developing new regression analysis.
+
+Data sources:
+
+<br>
+https://data.worldbank.org/indicator/SE.XPD.TOTL.GD.ZS?locations=CN
+
+<br>
+https://data.worldbank.org/indicator/SE.XPD.TOTL.GB.ZS?locations=HK
+
+<br>
+https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=CN
+
+<br>
+https://data.worldbank.org/indicator/NY.GDP.PCAP.CD?locations=HK
+
+
+
+
+
+
