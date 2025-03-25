@@ -12,7 +12,7 @@ Our initial approach to collecting binned values made it easily accessible for p
 I converted all binned values to scale based on the number of options available IE <4hrs, 4-5, 5-6, 6-7, 7-8, 8-9, 9+hrs was transformed into scaled values of 1,2,3,4,5,6, respectively.
 I also normalized all data before running any regressions.
 
-A wide breadth of data allowed for decent graphical analysis using Matplotlib for the first time. Most people reported their health status as above average, with health status >6 on scale 1-10.
+A wide breadth of data allowed for decent graphical analysis where I used Matplotlib for the first time. Most people reported their health status as above average, with health status >6 on scale 1-10.
 
 Initial analysis indicated potential relationships between observations and self-evaluated health status based on correlation values.
 However, using (parametric) multiple linear regression, I found no strong relationship between any variables and the self-evaluated health status.
