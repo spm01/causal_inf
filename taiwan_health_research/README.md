@@ -4,7 +4,7 @@ Class is taught / performed / executed in 100% Standard Taiwanese Mandarin.
 This project is aimed at analysing self-reported health habits on self-evaluated overall health status.
 I designed a small questionnaire that inquired about daily average phone screen time, weekly average workout time, daily average sleep duration, and daily caloric intake.
 Data was collected in binned groups based on assumed habits IE <4hrs sleep time per night with scaled values binned up to 9+ hrs per night. 
-These values are self-reported based on ~40 volunteer classmate and teacher participates in the survey.
+These values are self-reported from ~40 volunteer classmate and teacher participants in the survey.
 
 Our initial approach to collecting binned values made it easily accessible for participants, but increased the difficulty of the data processing/packaging steps in analysis.
 I converted all binned values to scale based on the number of options available IE <4hrs, 4-5, 5-6, 6-7, 7-8, 8-9, 9+hrs was transformed into scaled values of 1,2,3,4,5,6, respectively.
