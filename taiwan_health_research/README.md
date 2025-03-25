@@ -1,3 +1,5 @@
+![phone_guy](https://github.com/user-attachments/assets/2a9cea56-2a61-4ecc-a4be-5be376b48443)
+
 This is a research project for my independent research class in Spring2025. 
 Class is taught / performed / executed in 100% Standard Taiwanese Mandarin. 
 
