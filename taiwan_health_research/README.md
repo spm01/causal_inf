@@ -16,7 +16,7 @@ Initial analysis indicated potential relationships between observations and self
 However, using (parametric) multiple linear regression, I found no strong relationship between any variables and the self-evaluated health status.
 The exception to this was workout_time, which had a positive impact on self-percieved health status with p-value = 0.003.
 
-My second regression was utilized interaction terms (phone_time * sleep_time + phone_time*workout_time), but failed to cross any statistically significant threshold.
+My second regression utilized interaction terms (phone_time * sleep_time + phone_time*workout_time), but failed to cross any statistically significant threshold.
 Including interaction terms in the regression also greatly increased the p-value of workout_time from the prior regression from 0.003 to 0.710.
 
 Based on these analyses, the true relationship between my queries and self-percieved health time is likely negligible. 
