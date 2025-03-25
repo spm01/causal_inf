@@ -67,6 +67,7 @@ print(df.describe())
 print(df.isna())
 
 # %%
+'''
 #create initial plot to visualize relationships between variables
 X = df['phone_time']
 Y = df["health_status"]
@@ -104,12 +105,26 @@ plt.xticks(rotation=45)
 plt.xlabel('Average Daily Caloric Intake')
 plt.ylabel("Self-Reported Health Status")
 plt.show()
+'''
 # %%
 #create correlation matrix between variables
 matrix = np.corrcoef(df[['health_status','phone_time','sleep_time','workout_time','cal_intake']])
 print(matrix)
 #positive relationship found between each variable??
 
+
+#%%
+#check for variable collinearity using Variance Inflation Factor
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+from statsmodels.tools.tools import add_constant
+#set independent variables
+X = add_constant(df)
+#calculate VIF for each variable
+print(pd.Series([variance_inflation_factor(X.values, i)
+           for i in range(X.shape[1])],
+           index = X.columns)
+)
+#output values are between 1.05 - 1.41 indicating low probability of multicolinearity
 #%%
 #normalize variables before regression
 df_step = preprocessing.normalize(df, axis=0)
