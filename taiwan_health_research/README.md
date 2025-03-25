@@ -24,7 +24,7 @@ Based on these analyses, the true relationship between my queries and self-perci
 If I was to do this research again, I would include a question on body-weight. Body-weight in particular is often associated with health, or at minimum, self-perceived healthiness.
 The inclusion of this into my analysis would be another useful tool for later regression.
 
-Additionally, from a convience perspective, I would allowed polled individuals to input numeric values directly into the questionnaire instead of binned values.
+Additionally, from a convenience perspective, I would allowed polled individuals to input numeric values directly into the questionnaire instead of binned values.
 This would save me time on the back end for data processing.
 Binned values also create a form of data censoring making it more difficult to analyze underlying relationships. 
 I had previously viewed documentation on "censored regression" where binned values are split into 2 sections, lower-bound and upper-bound.
